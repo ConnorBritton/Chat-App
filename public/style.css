@@ -43,7 +43,6 @@ body {
     height: 100%;
     margin: 0 3px 0 6px;
     padding: 10px;
-    /* display: grid; */
 }
 
 #activeUsers {
