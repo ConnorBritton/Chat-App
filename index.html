@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ConnorBritton Chat App</title>
+        <meta charset="UTF-8">
+        <base href="/">
+        <link href="style.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <div id="box">
+            <ul id="container">
+                <li id="chat">
+                    <div id="chatCell">
+                        <div class="chatBox">
+                            <ul id="messages"></ul>
+                            <div id="formContainer">
+                                <form action="">
+                                    <input id="m" autocomplete="off" /><button>Send</button>
+                                </form>
+                            </div>
+                            <script src="/socket.io/socket.io.js"></script>
+                            <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+                            <script>
+                                $(function () {
+                                    var socket = io();
+                                    var myUsername = '';
+                                    $('form').submit(function(e){
+                                        e.preventDefault(); // prevents page reloading
+                                        socket.emit('chat message', $('#m').val());
+                                        $('#m').val('');
+                                        return false;
+                                    });
+                                    socket.on('chat message', function(msg){
+                                        let messages = [];
+                                        msg.forEach(message => {
+                                            let un = message.user.username;
+                                            un = un.fontcolor(message.user.color);
+                                            if(message.msg == " connected...") messages.push($('<li class="connection">').text(message.timeStamp).append(un).append(': ' + message.msg));
+                                            else if(message.msg == " disconnected...") messages.push($('<li class="disconnection">').text(message.timeStamp).append(un).append(': ' + message.msg));
+                                            else if(message.msg == "changed username...") messages.push($('<li class="nameChange">').text(message.timeStamp).append(un).append(': ' + message.msg));
+                                            else if(message.msg == "changed color...") messages.push($('<li class="colorChange">').text(message.timeStamp).append(un).append(': ' + message.msg));
+                                            else if(message.user.username == myUsername) {
+                                                // normal message from this user
+                                                messages.push($('<li class="normalMessage" style="font-weight:bold">').text(message.timeStamp).append(un).append(': ' + message.msg.replace(':)', '😁').replace(':(', '🙁').replace(':o', '😲')));
+                                            } else {
+                                                // normal message from another user
+                                                messages.push($('<li class="normalMessage">').text(message.timeStamp).append(un).append(': ' + message.msg.replace(':)', '😁').replace(':(', '🙁').replace(':o', '😲')));
+                                            }
+                                        });
+                                        $('#messages').empty().append(messages);
+                                    });
+                                    socket.on('users update', function(users){
+                                        let activeUsers = [];
+                                        users.forEach(user => {
+                                            if(user.online == true) {
+                                                let colorUsername = user.username;
+                                                colorUsername = colorUsername.fontcolor(user.color);
+                                                // show which user is me
+                                                if(user.username == myUsername) activeUsers.push($('<li style="font-weight:bold">').append(colorUsername + " (You)"));
+                                                else activeUsers.push($("<li>").append(colorUsername));
+                                            }
+                                        });
+                                        $('#onlineUsers').empty().append(activeUsers);
+                                    });
+                                    socket.on('set username', function(username){
+                                        myUsername = username;
+                                    });
+                                });
+                            </script>
+                        </div>
+                    </div>
+                </li>
+                <li id="activeUsers"> 
+                    <table>
+                        <tr>
+                            <th id="usersCell">Online Users</th>
+                        </tr>
+                        <tr>
+                            <td><ul id="onlineUsers"></ul></td>
+                        </tr>
+                    </table>                  
+                </li>
+            </ul>
+        </div>
+    </body>
+</html>
