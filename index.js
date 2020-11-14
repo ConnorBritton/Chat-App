@@ -22,7 +22,7 @@ io.on('connection', (socket) => {
     users.push({
         username: username,
         online: true,
-        color: "#000000" // default color: black
+        color: "#000000"
     });
     console.log(username + ' connected');
     socket.emit('set username', username);
